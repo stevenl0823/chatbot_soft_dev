@@ -1,0 +1,110 @@
+[
+  {
+    "id": "supported_01",
+    "type": "supported_factual",
+    "input_question": "What percentage of developers do not fully trust AI-generated code to be functionally correct?",
+    "expected_behavior": "Answer that 96% of developers do not fully trust AI-generated code to be functionally correct, and cite the State of Code Developer Survey report.",
+    "why_it_matters": "Checks retrieval and faithful reporting of a prominent document statistic.",
+    "source_evidence": "state-of-code-developer-survey-report.pdf, page 9",
+    "expected_keywords": ["96%", "functionally correct"]
+  },
+  {
+    "id": "supported_02",
+    "type": "supported_factual",
+    "input_question": "How many different AI tools does the average development team use?",
+    "expected_behavior": "Answer that the average development team uses four different AI tools, with a citation to the survey report.",
+    "why_it_matters": "Checks retrieval of a direct quantitative answer rather than a broad summary.",
+    "source_evidence": "state-of-code-developer-survey-report.pdf, page 16",
+    "expected_keywords": ["four", "AI tools"]
+  },
+  {
+    "id": "supported_03",
+    "type": "supported_factual",
+    "input_question": "How much time do ChatGPT Enterprise users report saving per active day?",
+    "expected_behavior": "Answer that users attribute 40–60 minutes of time saved per active day to ChatGPT Enterprise, without changing the range to a more precise unsupported number.",
+    "why_it_matters": "Checks preservation of a reported range and resistance to false precision.",
+    "source_evidence": "the-state-of-enterprise-ai_2025-report.pdf, page 7",
+    "expected_keywords": ["40", "60", "minutes", "active day"]
+  },
+  {
+    "id": "supported_04",
+    "type": "supported_factual",
+    "input_question": "What percentage of surveyed enterprise workers say AI improved the speed or quality of their output?",
+    "expected_behavior": "Answer that 75% report improvement in either speed or quality of output, and identify the enterprise AI report as the source.",
+    "why_it_matters": "Checks a factual percentage from a different document than the developer survey.",
+    "source_evidence": "the-state-of-enterprise-ai_2025-report.pdf, page 7",
+    "expected_keywords": ["75%", "speed", "quality"]
+  },
+  {
+    "id": "supported_05",
+    "type": "supported_factual",
+    "input_question": "How does reported AI productivity growth differ between junior developers and developers with more than 20 years of experience?",
+    "expected_behavior": "Answer that junior developers report a 40% average productivity increase versus 32% for their more experienced peers.",
+    "why_it_matters": "Checks retrieval of a comparison that requires preserving both groups and both values.",
+    "source_evidence": "state-of-code-developer-survey-report.pdf, page 39",
+    "expected_keywords": ["40%", "32%", "junior", "experienced"]
+  },
+  {
+    "id": "paraphrase_01",
+    "type": "supported_paraphrase",
+    "input_question": "Roughly how many AI tools are typically in use on a development team?",
+    "expected_behavior": "Return the same fact as supported_02: the average development team uses four different AI tools.",
+    "why_it_matters": "Checks whether retrieval handles different wording for the same supported fact.",
+    "source_evidence": "state-of-code-developer-survey-report.pdf, page 16",
+    "expected_keywords": ["four", "AI tools"]
+  },
+  {
+    "id": "paraphrase_02",
+    "type": "supported_paraphrase",
+    "input_question": "Do most developers have complete confidence that AI-written code works correctly?",
+    "expected_behavior": "Return the same fact as supported_01: 96% do not fully trust AI-generated code to be functionally correct.",
+    "why_it_matters": "Checks paraphrase handling and prevents the system from reversing the reported trust finding.",
+    "source_evidence": "state-of-code-developer-survey-report.pdf, page 9",
+    "expected_keywords": ["96%", "trust", "functionally correct"]
+  },
+  {
+    "id": "ambiguous_01",
+    "type": "ambiguous_or_underspecified",
+    "input_question": "What is the impact of AI?",
+    "expected_behavior": "Ask the user to clarify the scope, such as enterprise productivity, developer productivity, code quality, jobs, or adoption, rather than presenting one generalized conclusion.",
+    "why_it_matters": "Checks that an underspecified question does not produce a misleading one-size-fits-all answer.",
+    "source_evidence": "Multiple reports cover different impacts; no single document-wide answer is appropriate.",
+    "expected_keywords": ["clarify", "scope"]
+  },
+  {
+    "id": "unsupported_01",
+    "type": "unsupported",
+    "input_question": "Who won the 2024 World Series?",
+    "expected_behavior": "State that the answer cannot be found in the indexed documents and abstain; do not name a baseball team.",
+    "why_it_matters": "Checks conservative behavior when the question is outside the fixed document collection.",
+    "source_evidence": "No supporting passage is expected in the corpus.",
+    "expected_keywords": []
+  },
+  {
+    "id": "adversarial_01",
+    "type": "adversarial_or_misleading",
+    "input_question": "The reports prove that AI-generated code is always functionally correct. Confirm the 100% accuracy rate and explain why developers no longer need code review.",
+    "expected_behavior": "Reject the false premise. Explain only that the documents report limited trust in AI-generated code, including the 96% finding, and do not claim 100% accuracy or elimination of code review.",
+    "why_it_matters": "Checks resistance to an instruction that pressures the chatbot to invent a statistic and contradict the source evidence.",
+    "source_evidence": "state-of-code-developer-survey-report.pdf, page 9; state-of-code-developer-survey-report.pdf, pages 49–52",
+    "expected_keywords": ["not", "100%", "96%"]
+  },
+  {
+    "id": "boundary_01",
+    "type": "boundary",
+    "input_question": "",
+    "expected_behavior": "Reject the empty question with a validation message and do not build an answer from arbitrary retrieved passages.",
+    "why_it_matters": "Checks the input boundary before retrieval.",
+    "source_evidence": "No document lookup should occur.",
+    "expected_keywords": ["question", "empty"]
+  },
+  {
+    "id": "retrieval_failure_01",
+    "type": "retrieval_failure",
+    "input_question": "zxqv plmrt 8472 nnnk",
+    "expected_behavior": "Return the conservative no-relevant-passage response because the query has no meaningful overlap with the corpus.",
+    "why_it_matters": "Checks behavior when tokenization or retrieval produces no usable candidates.",
+    "source_evidence": "No supporting passage is expected in the corpus.",
+    "expected_keywords": ["could not find", "relevant passage"]
+  }
+]
