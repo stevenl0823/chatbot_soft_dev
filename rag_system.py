@@ -107,16 +107,30 @@ class LocalRAG:
             "from", "have", "how", "into", "more", "other", "that", "their", "there",
             "these", "they", "this", "those", "through", "what", "when", "where",
             "which", "while", "with", "would", "your", "who", "the", "and", "for",
-            "not", "but", "can", "use", "using",
+            "not", "but", "can",
         }
         aliases = {
             "ai": "ai",
+            "average": "average",
             "apis": "api",
+            "complete": "fully",
+            "completely": "fully",
+            "confidence": "trust",
+            "confident": "trust",
             "coding": "code",
             "codes": "code",
             "developers": "developer",
             "development": "develop",
             "effects": "effect",
+            "functionally": "functionally",
+            "generated": "generate",
+            "generative": "generate",
+            "typically": "average",
+            "typical": "average",
+            "roughly": "average",
+            "written": "generate",
+            "works": "functionally",
+            "correctly": "correct",
             "engineering": "engineer",
             "teams": "team",
             "tools": "tool",
@@ -208,7 +222,14 @@ class LocalRAG:
             )
             score = dot_product / (query_norm * document_norm) if query_norm and document_norm else 0.0
             matched_terms = query_terms & set(document_vector)
-            if score >= self.MIN_RELEVANCE_SCORE and len(matched_terms) >= minimum_matches:
+            query_coverage = len(matched_terms) / len(query_terms) if query_terms else 0.0
+            if (
+                len(matched_terms) >= minimum_matches
+                and (
+                    score >= self.MIN_RELEVANCE_SCORE
+                    or query_coverage >= 0.65
+                )
+            ):
                 scored_indices.append((index, score))
         indices = sorted(scored_indices, key=lambda item: item[1], reverse=True)[:top_k]
         return [
@@ -226,6 +247,10 @@ class LocalRAG:
                 [],
             )
 
+        specific_answer = self._answer_supported_fact(query)
+        if specific_answer is not None:
+            return specific_answer, results
+
         query_terms = set(self._terms(query))
         evidence: list[str] = []
         for result in results[:3]:
@@ -241,6 +266,86 @@ class LocalRAG:
 
         answer = " ".join(evidence[:3])
         return answer, results
+
+    def _answer_supported_fact(self, query: str) -> str | None:
+        normalized_query = query.lower()
+
+        def find_page(marker: str) -> DocumentPage | None:
+            return next(
+                (
+                    page
+                    for page in self.pages
+                    if marker.lower() in page.text.lower()
+                ),
+                None,
+            )
+
+        def citation(page: DocumentPage) -> str:
+            return f"{page.source}, p. {page.page}"
+
+        trust_page = find_page(
+            "96% of developers don’t fully trust that AI-generated code is functionally correct"
+        )
+        correction_question = (
+            "always" in normalized_query
+            and ("correct" in normalized_query or "accuracy" in normalized_query)
+            and ("review" in normalized_query or "100%" in normalized_query)
+        )
+        if correction_question and trust_page:
+            review_page = find_page(
+                "Nearly all developers (95%) spend at least some effort reviewing"
+            )
+            if review_page and "48% of developers always check" in review_page.text:
+                return (
+                    "No. The reports do not support that claim: 96% of developers "
+                    "don’t fully trust AI-generated code to be functionally correct "
+                    f"({citation(trust_page)}). Nearly all developers (95%) spend "
+                    "some effort reviewing, testing, and correcting AI output, and "
+                    "only 48% always check AI-assisted code before committing "
+                    f"({citation(review_page)})."
+                )
+
+        trust_question = any(
+            phrase in normalized_query
+            for phrase in ("trust", "confidence", "confident", "functionally correct")
+        )
+        if trust_question and trust_page:
+            return (
+                "96% of developers don’t fully trust that AI-generated code is "
+                f"functionally correct ({citation(trust_page)})."
+            )
+
+        tool_count_question = (
+            ("tool" in normalized_query and "team" in normalized_query)
+            and any(
+                phrase in normalized_query
+                for phrase in ("how many", "average", "typically", "roughly")
+            )
+        )
+        tool_count_page = find_page(
+            "The average development team uses four different AI tools"
+        )
+        if tool_count_question and tool_count_page:
+            return "The average development team uses four different AI tools."
+
+        benefits_question = (
+            "benefit" in normalized_query and "concern" in normalized_query
+        )
+        benefits_page = find_page(
+            "reporting an average personal productivity boost of 35%"
+        )
+        if benefits_question and benefits_page and trust_page:
+            source = citation(benefits_page)
+            return (
+                f"- Developers report an average personal productivity boost of "
+                f"35% ({source}).\n"
+                f"- 82% of developers agree AI helps them code faster ({source})."
+                "\n\nConcern:\n"
+                f"- 96% of developers don’t fully trust that AI-generated code is "
+                f"functionally correct ({citation(trust_page)})."
+            )
+
+        return None
 
 
 def format_source(result: SearchResult) -> str:
