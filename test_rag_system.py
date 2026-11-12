@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 import pytest
 
 from test_adapter import ask_chatbot

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 from pypdf import PdfReader
 
@@ -242,8 +242,10 @@ class LocalRAG:
         results = self.search(query, top_k=top_k)
         if not results:
             return (
-                "I could not find a relevant passage in the indexed documents. "
-                "Try using terms that appear in the reports.",
+                (
+                    "I could not find a relevant passage in the indexed documents. "
+                    "Try using terms that appear in the reports."
+                ),
                 [],
             )
 

@@ -5,7 +5,6 @@ from pathlib import Path
 
 from rag_system import LocalRAG
 
-
 BASE_DIR = Path(__file__).parent
 
 

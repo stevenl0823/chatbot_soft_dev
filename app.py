@@ -4,7 +4,6 @@ import streamlit as st
 
 from rag_system import LocalRAG, format_source
 
-
 BASE_DIR = Path(__file__).parent
 
 st.set_page_config(page_title="QA System", page_icon="Q", layout="wide")
